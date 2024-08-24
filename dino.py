@@ -15,6 +15,7 @@ LARGURA = 640
 ALTURA = 480
 
 BRANCO = (255,255,255)
+PRETO = (0,0,0)
 
 tela = pygame.display.set_mode((LARGURA, ALTURA))
 
@@ -23,7 +24,31 @@ pygame.display.set_caption('Jogo Dino')
 sprite_sheet = pygame.image.load(os.path.join(diretorio_imagens,'dinoSpritesheet.png')).convert_alpha()
 #O convert alpah se a imagem tiver transparencia ele realmente fica transparente, ignora
 
+som_pontuacao = pygame.mixer.Sound(os.path.join(diretorio_sons, 'score_sound.wav'))
+som_pontuacao.set_volume(1)
+
 escolha_obstaculo = choice ([0,1])
+
+pontos = 0
+velocidade_jogo = 10
+
+
+def exibe_mensagem(msg, tamanho, cor):
+    fonte = pygame.font.SysFont('timesnewroman', tamanho, True, False)
+    mensagem = f'{msg}'
+    texto_formatado = fonte.render(mensagem, True, cor)
+    return texto_formatado
+
+def reiniciar_jogo():
+    global pontos, velocidade_jogo
+    pontos = 0
+    velocidade_jogo == 10
+    dino.rect.y = ALTURA - 56 - 64//2
+    dino.pulo = False
+    dino_voador.rect.x = LARGURA
+    cacto.rect.x = LARGURA
+    escolha_obstaculo = choice([0,1])
+
 
 class Dino(pygame.sprite.Sprite):
     def __init__(self):
@@ -76,7 +101,7 @@ class Nuvens(pygame.sprite.Sprite):
         if self.rect.topright[0] < 0:
             self.rect.y = randrange(0,150, 50)
             self.rect.x = LARGURA
-        self.rect.x -= 8
+        self.rect.x -= velocidade_jogo
 
 class Chao(pygame.sprite.Sprite):
     def __init__(self, pos_x):
@@ -90,7 +115,7 @@ class Chao(pygame.sprite.Sprite):
     def update(self):
         if self.rect.topright[0] < 0:
             self.rect.x = LARGURA
-        self.rect.x -= 8
+        self.rect.x -= 10
 
 class Cacto(pygame.sprite.Sprite):
     def __init__(self):
@@ -107,7 +132,7 @@ class Cacto(pygame.sprite.Sprite):
         if self.escolha == 0:
             if self.rect.topright[0] < 0:
                 self.rect.x = LARGURA
-            self.rect.x -= 10
+            self.rect.x -= velocidade_jogo
 
 class DinoVoador(pygame.sprite.Sprite):
     def __init__(self):
@@ -130,7 +155,7 @@ class DinoVoador(pygame.sprite.Sprite):
         if self.escolha == 1:
             if self.rect.topright[0] < 0:
                 self.rect.x = LARGURA
-            self.rect.x -= 10
+            self.rect.x -= velocidade_jogo
 
             if self.index_lista > 1:
                 self.index_lista = 0
@@ -174,6 +199,10 @@ while True:
                     pass
                 else:
                     dino.pular()
+
+            if event.key == K_r and colisoes:
+                reiniciar_jogo()
+
     
     colisoes = pygame.sprite.spritecollide(dino, grupo_obstaculos, False, pygame.sprite.collide_mask) #Analisar
     
@@ -187,8 +216,29 @@ while True:
         dino_voador.escolha = escolha_obstaculo
 
     if colisoes:
-        pass
+        game_over = exibe_mensagem('GAME OVER', 40, PRETO)
+        tela.blit(game_over, (LARGURA//3.3, ALTURA//3))
+        reiniciar = exibe_mensagem('Pressione R para reiniciar', 20, PRETO)
+        tela.blit(reiniciar,(LARGURA//3.1, ALTURA//2.3))
+
+
     else:
+        pontos += 1
         todas_as_sprites.update()
+        texto_pontos = exibe_mensagem(pontos, 40, PRETO)
+    
+    if pontos % 100 == 0:
+        if colisoes:
+            pass
+        som_pontuacao.play()
+        if velocidade_jogo >= 23:
+            velocidade_jogo += 0
+        else:
+            velocidade_jogo += 1
+
+        print(velocidade_jogo)
+
+    tela.blit(texto_pontos, (520, 30))
+
 
     pygame.display.flip()
