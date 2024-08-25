@@ -30,7 +30,7 @@ som_pontuacao.set_volume(1)
 escolha_obstaculo = choice ([0,1,2])
 
 pontos = 0
-velocidade_jogo = 10
+velocidade_jogo = 15
 
 
 def exibe_mensagem(msg, tamanho, cor):
@@ -42,7 +42,7 @@ def exibe_mensagem(msg, tamanho, cor):
 def reiniciar_jogo():
     global pontos, velocidade_jogo, escolha_obstaculo
     pontos = 0
-    velocidade_jogo = 10
+    velocidade_jogo = 15
     dino.rect.y = ALTURA - 56 - 64//2
     dino.pulo = False
     dino_voador.rect.x = LARGURA
@@ -267,7 +267,7 @@ while True:
         if colisoes:
             pass
         som_pontuacao.play()
-        if velocidade_jogo >= 23:
+        if velocidade_jogo >= 100:
             velocidade_jogo += 0
         else:
             velocidade_jogo += 1
