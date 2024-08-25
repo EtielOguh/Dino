@@ -27,10 +27,10 @@ sprite_sheet = pygame.image.load(os.path.join(diretorio_imagens,'dinoSpritesheet
 som_pontuacao = pygame.mixer.Sound(os.path.join(diretorio_sons, 'score_sound.wav'))
 som_pontuacao.set_volume(1)
 
-escolha_obstaculo = choice ([0,1])
+escolha_obstaculo = choice ([0,1,2])
 
 pontos = 0
-velocidade_jogo = 10
+velocidade_jogo = 15
 
 
 def exibe_mensagem(msg, tamanho, cor):
@@ -40,14 +40,15 @@ def exibe_mensagem(msg, tamanho, cor):
     return texto_formatado
 
 def reiniciar_jogo():
-    global pontos, velocidade_jogo
+    global pontos, velocidade_jogo, escolha_obstaculo
     pontos = 0
-    velocidade_jogo == 10
+    velocidade_jogo = 15
     dino.rect.y = ALTURA - 56 - 64//2
     dino.pulo = False
     dino_voador.rect.x = LARGURA
+    dino_voador2.rect.x = LARGURA
     cacto.rect.x = LARGURA
-    escolha_obstaculo = choice([0,1])
+    escolha_obstaculo = choice([0,1,2])
 
 
 class Dino(pygame.sprite.Sprite):
@@ -74,7 +75,7 @@ class Dino(pygame.sprite.Sprite):
         if self.pulo == True:
             if self.rect.y <= 330:
                 self.pulo = False
-            self.rect.y -= 10
+            self.rect.y -= 15
         else:
             if self.rect.y < self.pos_y_inicial:
                 self.rect.y += 10
@@ -150,9 +151,38 @@ class DinoVoador(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.center = (LARGURA, 300) #Colocar na tela
         self.rect.x = LARGURA
+        self.rect.y = 300
     
     def update(self):
         if self.escolha == 1:
+            if self.rect.topright[0] < 0:
+                self.rect.x = LARGURA
+            self.rect.x -= velocidade_jogo
+
+            if self.index_lista > 1:
+                self.index_lista = 0
+            self.index_lista += 0.15
+            self.image = self.imagens_dinossauro[int(self.index_lista)]
+
+class DinoVoador2(pygame.sprite.Sprite):
+    def __init__(self):
+        pygame.sprite.Sprite.__init__(self)
+        self.imagens_dinossauro = []
+        for i in range(3,5):
+            img = sprite_sheet.subsurface((i*32, 0),(32, 32))
+            img = pygame.transform.scale(img, (32*3, 32*3))
+            self.imagens_dinossauro.append(img)
+
+        self.index_lista = 0
+        self.image = self.imagens_dinossauro[self.index_lista]
+        self.mask = pygame.mask.from_surface(self.image)
+        self.escolha = escolha_obstaculo
+        self.rect = self.image.get_rect()
+        self.rect.center = (LARGURA, 420) #Colocar na tela
+        self.rect.x = LARGURA
+    
+    def update(self):
+        if self.escolha == 2:
             if self.rect.topright[0] < 0:
                 self.rect.x = LARGURA
             self.rect.x -= velocidade_jogo
@@ -180,9 +210,13 @@ todas_as_sprites.add(cacto)
 dino_voador = DinoVoador()
 todas_as_sprites.add(dino_voador)
 
+dino_voador2 = DinoVoador2()
+todas_as_sprites.add(dino_voador2)
+
 grupo_obstaculos = pygame.sprite.Group()
 grupo_obstaculos.add(cacto)
 grupo_obstaculos.add(dino_voador)
+grupo_obstaculos.add(dino_voador2)
 
 relogio = pygame.time.Clock()
 
@@ -208,12 +242,14 @@ while True:
     
     todas_as_sprites.draw(tela)
 
-    if cacto.rect.topright[0] <= 0 or dino_voador.rect.topright[0] <= 0:
-        escolha_obstaculo = choice([0,1])
+    if cacto.rect.topright[0] <= 0 or dino_voador.rect.topright[0] <= 0 or dino_voador2.rect.topright[0] <= 0:
+        escolha_obstaculo = choice([0,1,2])
         cacto.rect.x = LARGURA
         dino_voador.rect.x = LARGURA
+        dino_voador2.rect.x = LARGURA
         cacto.escolha = escolha_obstaculo
         dino_voador.escolha = escolha_obstaculo
+        dino_voador2.escolha = escolha_obstaculo
 
     if colisoes:
         game_over = exibe_mensagem('GAME OVER', 40, PRETO)
@@ -231,7 +267,7 @@ while True:
         if colisoes:
             pass
         som_pontuacao.play()
-        if velocidade_jogo >= 23:
+        if velocidade_jogo >= 100:
             velocidade_jogo += 0
         else:
             velocidade_jogo += 1
